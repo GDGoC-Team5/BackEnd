@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: studyhub
+  config:
+    # 프로젝트 루트의 .env 를 읽어온다 (없으면 무시)
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
