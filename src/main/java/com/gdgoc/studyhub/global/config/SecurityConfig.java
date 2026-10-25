@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -34,6 +35,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * formLogin / httpBasic 은 사용하지 않는다.
  */
 @Configuration
+// @PreAuthorize 사용 가능하게 한다. 스터디별 권한 체크 예: @PreAuthorize("@studyAuth.isManager(#studyId, authentication)")
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
