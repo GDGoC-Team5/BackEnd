@@ -1,6 +1,7 @@
 package com.gdgoc.studyhub.global.security;
 
 import com.gdgoc.studyhub.global.common.ApiResponse;
+import com.gdgoc.studyhub.global.exception.CommonErrorCode;
 import com.gdgoc.studyhub.global.exception.ErrorCode;
 import com.gdgoc.studyhub.global.exception.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +26,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        write(response, objectMapper, ErrorCode.UNAUTHORIZED);
+        write(response, objectMapper, CommonErrorCode.UNAUTHORIZED);
     }
 
     static void write(HttpServletResponse response, ObjectMapper objectMapper, ErrorCode errorCode)

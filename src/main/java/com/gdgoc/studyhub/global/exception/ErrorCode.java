@@ -1,33 +1,28 @@
 package com.gdgoc.studyhub.global.exception;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 /**
- * 에러 코드 목록. 도메인별 코드는 접두어(USER_, AUTH_, STUDY_ ...)를 붙여 아래에 추가한다.
+ * 모든 에러 코드의 공통 규격. 공통 에러는 {@link CommonErrorCode}, 도메인 에러는 각 도메인의
+ * {@code domain/{도메인}/exception/{도메인}ErrorCode} enum 에 두고 이 인터페이스를 구현한다.
+ * <pre>
+ * &#64;Getter
+ * &#64;RequiredArgsConstructor
+ * public enum StudyErrorCode implements ErrorCode {
+ *     STUDY_NOT_FOUND(HttpStatus.NOT_FOUND, "STUDY_404", "스터디를 찾을 수 없습니다.");
+ *
+ *     private final HttpStatus status;
+ *     private final String code;
+ *     private final String message;
+ * }
+ * </pre>
  */
-@Getter
-@RequiredArgsConstructor
-public enum ErrorCode {
+public interface ErrorCode {
 
-    // Common
-    INVALID_INPUT(HttpStatus.BAD_REQUEST, "COMMON_400", "입력값이 올바르지 않습니다."),
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_401", "로그인이 필요합니다."),
-    FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_403", "접근 권한이 없습니다."),
-    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON_404", "요청한 리소스를 찾을 수 없습니다."),
-    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON_405", "지원하지 않는 HTTP 메서드입니다."),
-    DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "COMMON_409", "이미 존재하는 데이터입니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_500", "서버 내부 오류가 발생했습니다."),
+    HttpStatus getStatus();
 
-    // Auth
-    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_401", "이메일 또는 비밀번호가 올바르지 않습니다."),
+    /** 응답의 error.code 값. 접두어로 도메인을 구분한다 (COMMON_, AUTH_, USER_, STUDY_ ...) */
+    String getCode();
 
-    // User
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_404", "회원을 찾을 수 없습니다."),
-    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "USER_409", "이미 가입된 이메일입니다.");
-
-    private final HttpStatus status;
-    private final String code;
-    private final String message;
+    String getMessage();
 }
