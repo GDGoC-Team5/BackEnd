@@ -22,3 +22,9 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
+
+springdoc:
+  swagger-ui:
+    # Swagger 가 XSRF-TOKEN 쿠키를 읽어 X-XSRF-TOKEN 헤더로 자동 전송 (로그인 후 POST/PATCH/DELETE 테스트용)
+    csrf:
+      enabled: true

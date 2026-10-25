@@ -1,6 +1,8 @@
 package com.gdgoc.studyhub.domain.auth.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -92,6 +95,78 @@ class AuthControllerTest {
         signup("tester@studyhub.com", "비밀번호 1234", "테스터")
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.fieldErrors[0].field").value("password"));
+    }
+
+    @Test
+    void 로그인하면_세션으로_내_정보를_조회할_수_있다() throws Exception {
+        saveUser("tester@studyhub.com", "password1234");
+
+        MockHttpSession session = (MockHttpSession) login("tester@studyhub.com", "password1234")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("tester@studyhub.com"))
+                .andReturn().getRequest().getSession(false);
+
+        mockMvc.perform(get("/api/users/me").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("tester@studyhub.com"))
+                .andExpect(jsonPath("$.data.password").doesNotExist());
+    }
+
+    @Test
+    void 로그인에_성공하면_세션_ID가_바뀐다() throws Exception {
+        saveUser("tester@studyhub.com", "password1234");
+        MockHttpSession session = new MockHttpSession();
+        String before = session.getId();
+
+        String after = mockMvc.perform(post("/api/auth/login").session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginBody("tester@studyhub.com", "password1234")))
+                .andExpect(status().isOk())
+                .andReturn().getRequest().getSession(false).getId();
+
+        assertThat(after).isNotEqualTo(before);
+    }
+
+    @Test
+    void 비밀번호가_틀리거나_없는_이메일이면_같은_401을_반환한다() throws Exception {
+        saveUser("tester@studyhub.com", "password1234");
+
+        login("tester@studyhub.com", "wrong-password")
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_401"));
+        login("nobody@studyhub.com", "password1234")
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_401"));
+    }
+
+    @Test
+    void 로그아웃하면_같은_세션으로_내_정보를_조회할_수_없다() throws Exception {
+        saveUser("tester@studyhub.com", "password1234");
+        MockHttpSession session = (MockHttpSession) login("tester@studyhub.com", "password1234")
+                .andReturn().getRequest().getSession(false);
+
+        mockMvc.perform(post("/api/auth/logout").session(session).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+
+        mockMvc.perform(get("/api/users/me").session(session))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private void saveUser(String email, String password) {
+        userRepository.save(User.create(email, passwordEncoder.encode(password), "테스터"));
+    }
+
+    private ResultActions login(String email, String password) throws Exception {
+        return mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody(email, password)));
+    }
+
+    private String loginBody(String email, String password) {
+        return """
+                {"email":"%s","password":"%s"}
+                """.formatted(email, password);
     }
 
     private ResultActions signup(String email, String password, String name) throws Exception {

@@ -39,8 +39,8 @@ class SecurityConfigTest {
 
     @Test
     void 공개_엔드포인트는_인증_없이_접근할_수_있다() throws Exception {
-        // 컨트롤러가 아직 없으므로 401/403 이 아니라 404 가 나오면 보안 필터를 통과한 것
-        mockMvc.perform(post("/api/auth/login")).andExpect(status().isNotFound());
+        // 바디 없이 호출해서 401/403 이 아니라 400 이 나오면 보안 필터를 통과해 컨트롤러까지 간 것
+        mockMvc.perform(post("/api/auth/login")).andExpect(status().isBadRequest());
         mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk());
     }
 
