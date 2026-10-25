@@ -1,6 +1,6 @@
 package com.gdgoc.studyhub.global.security;
 
-import com.gdgoc.studyhub.global.exception.ErrorCode;
+import com.gdgoc.studyhub.global.exception.CommonErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -22,6 +22,6 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
-        RestAuthenticationEntryPoint.write(response, objectMapper, ErrorCode.FORBIDDEN);
+        RestAuthenticationEntryPoint.write(response, objectMapper, CommonErrorCode.FORBIDDEN);
     }
 }

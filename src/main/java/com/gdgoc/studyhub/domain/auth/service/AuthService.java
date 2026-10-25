@@ -2,11 +2,12 @@ package com.gdgoc.studyhub.domain.auth.service;
 
 import com.gdgoc.studyhub.domain.auth.dto.LoginRequest;
 import com.gdgoc.studyhub.domain.auth.dto.SignupRequest;
+import com.gdgoc.studyhub.domain.auth.exception.AuthErrorCode;
 import com.gdgoc.studyhub.domain.user.dto.UserResponse;
 import com.gdgoc.studyhub.domain.user.entity.User;
+import com.gdgoc.studyhub.domain.user.exception.UserErrorCode;
 import com.gdgoc.studyhub.domain.user.repository.UserRepository;
 import com.gdgoc.studyhub.global.exception.BusinessException;
-import com.gdgoc.studyhub.global.exception.ErrorCode;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,7 +31,7 @@ public class AuthService {
     public UserResponse signup(SignupRequest request) {
         String email = normalizeEmail(request.email());
         if (userRepository.existsByEmail(email)) {
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+            throw new BusinessException(UserErrorCode.DUPLICATE_EMAIL);
         }
 
         User user = User.create(email, passwordEncoder.encode(request.password()), request.name().trim());
@@ -39,7 +40,7 @@ public class AuthService {
             // flush 로 INSERT 를 즉시 실행해야 이 자리에서 예외를 잡아 409 로 바꿀 수 있다.
             userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException e) {
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+            throw new BusinessException(UserErrorCode.DUPLICATE_EMAIL);
         }
         return UserResponse.from(user);
     }
@@ -54,7 +55,7 @@ public class AuthService {
         try {
             return authenticationManager.authenticate(token);
         } catch (AuthenticationException e) {
-            throw new BusinessException(ErrorCode.LOGIN_FAILED);
+            throw new BusinessException(AuthErrorCode.LOGIN_FAILED);
         }
     }
 

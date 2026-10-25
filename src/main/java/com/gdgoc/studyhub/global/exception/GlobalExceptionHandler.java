@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     /** @Valid @RequestBody 검증 실패 → 400 + 필드별 사유 */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
-        return toResponse(ErrorCode.INVALID_INPUT, ErrorResponse.of(ErrorCode.INVALID_INPUT, e.getBindingResult()));
+        return toResponse(CommonErrorCode.INVALID_INPUT, ErrorResponse.of(CommonErrorCode.INVALID_INPUT, e.getBindingResult()));
     }
 
     /** JSON 파싱 실패, 타입 불일치, 필수 파라미터 누락 → 400 */
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ApiResponse<Void>> handleBadRequest(Exception e) {
         log.info("Bad request: {}", e.getMessage());
-        return toResponse(ErrorCode.INVALID_INPUT, ErrorResponse.of(ErrorCode.INVALID_INPUT));
+        return toResponse(CommonErrorCode.INVALID_INPUT, ErrorResponse.of(CommonErrorCode.INVALID_INPUT));
     }
 
     /**
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
         log.warn("DataIntegrityViolationException: {}", e.getMostSpecificCause().getMessage());
-        return toResponse(ErrorCode.DUPLICATE_RESOURCE, ErrorResponse.of(ErrorCode.DUPLICATE_RESOURCE));
+        return toResponse(CommonErrorCode.DUPLICATE_RESOURCE, ErrorResponse.of(CommonErrorCode.DUPLICATE_RESOURCE));
     }
 
     /**
@@ -63,28 +63,28 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthentication(AuthenticationException e) {
-        return toResponse(ErrorCode.UNAUTHORIZED, ErrorResponse.of(ErrorCode.UNAUTHORIZED));
+        return toResponse(CommonErrorCode.UNAUTHORIZED, ErrorResponse.of(CommonErrorCode.UNAUTHORIZED));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e) {
-        return toResponse(ErrorCode.FORBIDDEN, ErrorResponse.of(ErrorCode.FORBIDDEN));
+        return toResponse(CommonErrorCode.FORBIDDEN, ErrorResponse.of(CommonErrorCode.FORBIDDEN));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(NoResourceFoundException e) {
-        return toResponse(ErrorCode.RESOURCE_NOT_FOUND, ErrorResponse.of(ErrorCode.RESOURCE_NOT_FOUND));
+        return toResponse(CommonErrorCode.RESOURCE_NOT_FOUND, ErrorResponse.of(CommonErrorCode.RESOURCE_NOT_FOUND));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
-        return toResponse(ErrorCode.METHOD_NOT_ALLOWED, ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED));
+        return toResponse(CommonErrorCode.METHOD_NOT_ALLOWED, ErrorResponse.of(CommonErrorCode.METHOD_NOT_ALLOWED));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
         log.error("Unhandled exception", e);
-        return toResponse(ErrorCode.INTERNAL_SERVER_ERROR, ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR));
+        return toResponse(CommonErrorCode.INTERNAL_SERVER_ERROR, ErrorResponse.of(CommonErrorCode.INTERNAL_SERVER_ERROR));
     }
 
     private ResponseEntity<ApiResponse<Void>> toResponse(ErrorCode errorCode, ErrorResponse errorResponse) {

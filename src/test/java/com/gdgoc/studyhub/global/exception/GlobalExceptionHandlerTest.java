@@ -77,7 +77,7 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.error.code").value("COMMON_409"))
-                .andExpect(jsonPath("$.error.message").value(ErrorCode.DUPLICATE_RESOURCE.getMessage()));
+                .andExpect(jsonPath("$.error.message").value(CommonErrorCode.DUPLICATE_RESOURCE.getMessage()));
     }
 
     @Test
@@ -92,7 +92,7 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/test/unknown"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.error.code").value("COMMON_500"))
-                .andExpect(jsonPath("$.error.message").value(ErrorCode.INTERNAL_SERVER_ERROR.getMessage()));
+                .andExpect(jsonPath("$.error.message").value(CommonErrorCode.INTERNAL_SERVER_ERROR.getMessage()));
     }
 
     record TestRequest(@NotBlank String name) {
@@ -108,7 +108,7 @@ class GlobalExceptionHandlerTest {
 
         @GetMapping("/test/business")
         void business() {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "스터디 매니저만 가능합니다.");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN, "스터디 매니저만 가능합니다.");
         }
 
         @PostMapping("/test/valid")

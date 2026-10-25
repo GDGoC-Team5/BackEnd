@@ -5,7 +5,8 @@ import lombok.Getter;
 /**
  * 비즈니스 규칙 위반 시 던지는 예외. GlobalExceptionHandler 가 ErrorCode 의 상태 코드로 변환한다.
  * <pre>
- * throw new BusinessException(ErrorCode.FORBIDDEN);
+ * throw new BusinessException(CommonErrorCode.FORBIDDEN);
+ * throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
  * </pre>
  */
 @Getter
