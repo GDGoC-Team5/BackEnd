@@ -6,7 +6,6 @@ import com.gdgoc.studyhub.domain.study.repository.StudyRepository;
 import com.gdgoc.studyhub.domain.studymember.dto.StudyMemberResponse;
 import com.gdgoc.studyhub.domain.studymember.entity.MemberStatus;
 import com.gdgoc.studyhub.domain.studymember.entity.StudyMember;
-import com.gdgoc.studyhub.domain.studymember.entity.StudyRole;
 import com.gdgoc.studyhub.domain.studymember.exception.StudyMemberErrorCode;
 import com.gdgoc.studyhub.domain.studymember.repository.StudyMemberRepository;
 import com.gdgoc.studyhub.domain.user.repository.UserRepository;
@@ -72,21 +71,14 @@ public class StudyMemberService {
 
     /**
      * 탈퇴. 행은 지우지 않고 status 만 LEFT 로 바꾼다 (나중에 제출 기록 등이 이 멤버를 참조할 수 있다).
-     * 정책: 다른 멤버가 남아 있는데 마지막 MANAGER 가 나가면 스터디를 관리할 사람이 없어지므로 막는다.
-     * 혼자 남은 MANAGER 는 탈퇴할 수 있다.
+     * 정책: MANAGER(스터디 생성자)는 탈퇴할 수 없다. 스터디는 없어지지 않으므로 항상 관리자가 있어야 한다.
      */
     @Transactional
     public void leave(Long studyId, Long userId) {
         StudyMember me = studyAuth.requireMember(studyId, userId);
-        if (me.isManager() && isLastManagerWithOthers(studyId)) {
-            throw new BusinessException(StudyMemberErrorCode.LAST_MANAGER_CANNOT_LEAVE);
+        if (me.isManager()) {
+            throw new BusinessException(StudyMemberErrorCode.MANAGER_CANNOT_LEAVE);
         }
         me.leave();
-    }
-
-    private boolean isLastManagerWithOthers(Long studyId) {
-        long managers = studyMemberRepository.countByStudyIdAndRoleAndStatus(studyId, StudyRole.MANAGER, MemberStatus.ACTIVE);
-        long members = studyMemberRepository.countByStudyIdAndStatus(studyId, MemberStatus.ACTIVE);
-        return managers == 1 && members > 1;
     }
 }

@@ -2,7 +2,6 @@ package com.gdgoc.studyhub.domain.studymember.repository;
 
 import com.gdgoc.studyhub.domain.studymember.entity.MemberStatus;
 import com.gdgoc.studyhub.domain.studymember.entity.StudyMember;
-import com.gdgoc.studyhub.domain.studymember.entity.StudyRole;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,8 +17,6 @@ public interface StudyMemberRepository extends JpaRepository<StudyMember, Long> 
     Optional<StudyMember> findByStudyIdAndUserIdAndStatus(Long studyId, Long userId, MemberStatus status);
 
     long countByStudyIdAndStatus(Long studyId, MemberStatus status);
-
-    long countByStudyIdAndRoleAndStatus(Long studyId, StudyRole role, MemberStatus status);
 
     /** 내가 속한 스터디 목록. study 를 함께 가져와 N+1 쿼리를 막는다. */
     @Query("""
