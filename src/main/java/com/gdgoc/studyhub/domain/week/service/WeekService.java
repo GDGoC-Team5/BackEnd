@@ -4,10 +4,12 @@ import com.gdgoc.studyhub.domain.study.entity.Study;
 import com.gdgoc.studyhub.domain.studymember.service.StudyAuthorizationService;
 import com.gdgoc.studyhub.domain.week.dto.WeekCreateRequest;
 import com.gdgoc.studyhub.domain.week.dto.WeekResponse;
+import com.gdgoc.studyhub.domain.week.dto.WeekSummaryResponse;
 import com.gdgoc.studyhub.domain.week.entity.Week;
 import com.gdgoc.studyhub.domain.week.exception.WeekErrorCode;
 import com.gdgoc.studyhub.domain.week.repository.WeekRepository;
 import com.gdgoc.studyhub.global.exception.BusinessException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -39,5 +41,13 @@ public class WeekService {
             throw new BusinessException(WeekErrorCode.DUPLICATE_WEEK_NO);
         }
         return WeekResponse.from(week);
+    }
+
+    /** 주차 목록. 스터디 멤버만 볼 수 있다. 주차 번호 오름차순. 주차가 없으면 빈 배열. */
+    public List<WeekSummaryResponse> getWeeks(Long studyId, Long userId) {
+        studyAuth.requireMember(studyId, userId);
+        return weekRepository.findAllByStudyIdOrderByWeekNoAsc(studyId).stream()
+                .map(WeekSummaryResponse::from)
+                .toList();
     }
 }
