@@ -3,6 +3,7 @@ package com.gdgoc.studyhub.domain.week.controller;
 import com.gdgoc.studyhub.domain.week.dto.WeekCreateRequest;
 import com.gdgoc.studyhub.domain.week.dto.WeekResponse;
 import com.gdgoc.studyhub.domain.week.dto.WeekSummaryResponse;
+import com.gdgoc.studyhub.domain.week.dto.WeekUpdateRequest;
 import com.gdgoc.studyhub.domain.week.service.WeekService;
 import com.gdgoc.studyhub.global.common.ApiResponse;
 import com.gdgoc.studyhub.global.security.CustomUserDetails;
@@ -11,7 +12,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,5 +46,28 @@ public class WeekController {
     public ApiResponse<List<WeekSummaryResponse>> getWeeks(@AuthenticationPrincipal CustomUserDetails principal,
                                                            @PathVariable Long studyId) {
         return ApiResponse.ok(weekService.getWeeks(studyId, principal.getUserId()));
+    }
+
+    /** 주차가 속한 스터디의 멤버만 조회 가능 */
+    @GetMapping("/weeks/{weekId}")
+    public ApiResponse<WeekResponse> getWeek(@AuthenticationPrincipal CustomUserDetails principal,
+                                             @PathVariable Long weekId) {
+        return ApiResponse.ok(weekService.getWeek(weekId, principal.getUserId()));
+    }
+
+    /** MANAGER 만 수정 가능. 보낸 필드만 바뀐다. */
+    @PatchMapping("/weeks/{weekId}")
+    public ApiResponse<WeekResponse> update(@AuthenticationPrincipal CustomUserDetails principal,
+                                            @PathVariable Long weekId,
+                                            @Valid @RequestBody WeekUpdateRequest request) {
+        return ApiResponse.ok(weekService.update(weekId, principal.getUserId(), request));
+    }
+
+    /** MANAGER 만 삭제 가능 */
+    @DeleteMapping("/weeks/{weekId}")
+    public ApiResponse<Void> delete(@AuthenticationPrincipal CustomUserDetails principal,
+                                    @PathVariable Long weekId) {
+        weekService.delete(weekId, principal.getUserId());
+        return ApiResponse.ok();
     }
 }

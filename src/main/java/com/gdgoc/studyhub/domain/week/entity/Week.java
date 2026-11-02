@@ -78,4 +78,27 @@ public class Week extends BaseTimeEntity {
                               AssignmentType assignmentType) {
         return new Week(study, weekNo, title, assignmentDescription, sessionAt, location, deadline, assignmentType);
     }
+
+    /** null 인 값은 바꾸지 않는다 (PATCH). 제출 방식(assignmentType)은 수정할 수 없다. */
+    public void update(Integer weekNo, String title, String assignmentDescription,
+                       LocalDateTime sessionAt, String location, LocalDateTime deadline) {
+        if (weekNo != null) {
+            this.weekNo = weekNo;
+        }
+        if (title != null) {
+            this.title = title;
+        }
+        if (assignmentDescription != null) {
+            this.assignmentDescription = assignmentDescription;
+        }
+        if (sessionAt != null) {
+            this.sessionAt = sessionAt;
+        }
+        if (location != null) {
+            this.location = location;
+        }
+        if (deadline != null) {
+            this.deadline = deadline;
+        }
+    }
 }
