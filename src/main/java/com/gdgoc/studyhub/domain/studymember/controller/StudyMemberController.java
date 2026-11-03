@@ -39,6 +39,14 @@ public class StudyMemberController {
         return ApiResponse.ok(studyMemberService.getMembers(studyId, principal.getUserId()));
     }
 
+    /** 멤버만 조회 가능 */
+    @GetMapping("/{studyId}/members/{userId}")
+    public ApiResponse<StudyMemberResponse> getMember(@AuthenticationPrincipal CustomUserDetails principal,
+                                                      @PathVariable Long studyId,
+                                                      @PathVariable Long userId) {
+        return ApiResponse.ok(studyMemberService.getMember(studyId, userId, principal.getUserId()));
+    }
+
     /** 내 탈퇴 */
     @DeleteMapping("/{studyId}/members/me")
     public ApiResponse<Void> leave(@AuthenticationPrincipal CustomUserDetails principal,

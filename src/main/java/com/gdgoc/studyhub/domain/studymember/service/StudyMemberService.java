@@ -69,6 +69,15 @@ public class StudyMemberService {
                 .toList();
     }
 
+    /** 멤버 상세. 멤버만 볼 수 있고, 조회 대상은 같은 스터디의 ACTIVE 멤버여야 한다. */
+    public StudyMemberResponse getMember(Long studyId, Long targetUserId, Long requesterId) {
+        studyAuth.requireMember(studyId, requesterId);
+        StudyMember target = studyMemberRepository
+                .findByStudyIdAndUserIdAndStatus(studyId, targetUserId, MemberStatus.ACTIVE)
+                .orElseThrow(() -> new BusinessException(StudyMemberErrorCode.STUDY_MEMBER_NOT_FOUND));
+        return StudyMemberResponse.from(target);
+    }
+
     /**
      * 탈퇴. 행은 지우지 않고 status 만 LEFT 로 바꾼다 (나중에 제출 기록 등이 이 멤버를 참조할 수 있다).
      * 정책: MANAGER(스터디 생성자)는 탈퇴할 수 없다. 스터디는 없어지지 않으므로 항상 관리자가 있어야 한다.

@@ -13,6 +13,9 @@ public enum StudyMemberErrorCode implements ErrorCode {
     NOT_STUDY_MEMBER(HttpStatus.FORBIDDEN, "STUDY_403_MEMBER", "스터디 멤버만 접근할 수 있습니다."),
     NOT_STUDY_MANAGER(HttpStatus.FORBIDDEN, "STUDY_403_MANAGER", "스터디 매니저만 할 수 있습니다."),
 
+    // 조회
+    STUDY_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "STUDY_404_MEMBER", "스터디 멤버를 찾을 수 없습니다."),
+
     // 가입 · 탈퇴
     INVALID_INVITE_CODE(HttpStatus.NOT_FOUND, "STUDY_404_INVITE", "유효하지 않은 초대 코드입니다."),
     ALREADY_STUDY_MEMBER(HttpStatus.CONFLICT, "STUDY_409_MEMBER", "이미 가입한 스터디입니다."),
