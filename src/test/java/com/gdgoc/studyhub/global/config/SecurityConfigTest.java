@@ -53,8 +53,11 @@ class SecurityConfigTest {
 
     @Test
     void CSRF_토큰이_있으면_보안_필터를_통과한다() throws Exception {
+        // 스터디 생성 API가 구현되어 있으므로, 바디가 없는 요청은 컨트롤러에서 400이 된다.
         mockMvc.perform(post("/api/studies").with(user("tester")).with(csrf()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("COMMON_400"));
     }
 
     @Test
