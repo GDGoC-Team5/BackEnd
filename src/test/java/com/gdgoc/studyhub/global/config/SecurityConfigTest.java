@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,6 +62,9 @@ class SecurityConfigTest {
     }
 
     @Test
+    // csrf() 테스트 도우미가 공유 필터의 저장소를 세션 방식으로 바꾸므로,
+    // 실제 쿠키 설정을 검사하는 이 테스트는 새 컨텍스트에서 실행한다.
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void 응답에_XSRF_TOKEN_쿠키가_내려가고_JS에서_읽을_수_있다() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(cookie().exists("XSRF-TOKEN"))

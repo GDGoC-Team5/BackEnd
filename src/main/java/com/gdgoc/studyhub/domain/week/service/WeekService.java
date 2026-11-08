@@ -1,6 +1,7 @@
 package com.gdgoc.studyhub.domain.week.service;
 
 import com.gdgoc.studyhub.domain.bestmember.repository.WeeklyBestMemberRepository;
+import com.gdgoc.studyhub.domain.material.repository.MaterialRepository;
 import com.gdgoc.studyhub.domain.study.entity.Study;
 import com.gdgoc.studyhub.domain.submission.repository.SubmissionRepository;
 import com.gdgoc.studyhub.domain.studymember.service.StudyAuthorizationService;
@@ -27,6 +28,7 @@ public class WeekService {
     private final WeekRepository weekRepository;
     private final WeeklyBestMemberRepository bestMemberRepository;
     private final SubmissionRepository submissionRepository;
+    private final MaterialRepository materialRepository;
     private final StudyAuthorizationService studyAuth;
 
     /** 주차 생성. MANAGER 만 가능하고, 같은 스터디에서 weekNo 가 겹치면 409. */
@@ -92,7 +94,7 @@ public class WeekService {
 
     /**
      * 주차 삭제. MANAGER 만 가능하다. 그 주차의 우수 멤버 기록도 함께 지운다.
-     * 제출물이 있으면 삭제할 수 없다. TODO: 세션 자료 구현 후에도 같은 삭제 방지 규칙을 연결한다.
+     * 제출물이나 세션 자료가 있으면 먼저 삭제해야 한다.
      */
     @Transactional
     public void delete(Long weekId, Long userId) {
@@ -100,6 +102,9 @@ public class WeekService {
         studyAuth.requireManager(week.getStudy().getId(), userId);
         if (submissionRepository.existsByWeekId(weekId)) {
             throw new BusinessException(WeekErrorCode.HAS_SUBMISSIONS);
+        }
+        if (materialRepository.existsByWeekId(weekId)) {
+            throw new BusinessException(WeekErrorCode.HAS_MATERIALS);
         }
         bestMemberRepository.deleteAllByWeekId(weekId);
         weekRepository.delete(week);
