@@ -4,6 +4,9 @@ import com.gdgoc.studyhub.domain.studytag.entity.StudyTag;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface StudyTagRepository extends JpaRepository<StudyTag, Long> {
 
@@ -13,4 +16,7 @@ public interface StudyTagRepository extends JpaRepository<StudyTag, Long> {
 
     /** 다른 스터디의 태그 id 로 지우지 못하도록 studyId 도 함께 조건에 건다. */
     Optional<StudyTag> findByIdAndStudyId(Long id, Long studyId);
+    @Modifying
+    @Query("delete from StudyTag item where item.study.id = :studyId")
+    void deleteAllByStudyId(@Param("studyId") Long studyId);
 }

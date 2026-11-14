@@ -1,5 +1,7 @@
 package com.gdgoc.studyhub.domain.study.service;
 
+import com.gdgoc.studyhub.domain.bestmember.repository.WeeklyBestMemberRepository;
+import com.gdgoc.studyhub.domain.material.repository.MaterialRepository;
 import com.gdgoc.studyhub.domain.study.dto.MyStudyResponse;
 import com.gdgoc.studyhub.domain.study.dto.StudyCreateRequest;
 import com.gdgoc.studyhub.domain.study.dto.StudyResponse;
@@ -10,7 +12,10 @@ import com.gdgoc.studyhub.domain.studymember.entity.MemberStatus;
 import com.gdgoc.studyhub.domain.studymember.entity.StudyMember;
 import com.gdgoc.studyhub.domain.studymember.repository.StudyMemberRepository;
 import com.gdgoc.studyhub.domain.studymember.service.StudyAuthorizationService;
+import com.gdgoc.studyhub.domain.studytag.repository.StudyTagRepository;
+import com.gdgoc.studyhub.domain.submission.repository.SubmissionRepository;
 import com.gdgoc.studyhub.domain.user.repository.UserRepository;
+import com.gdgoc.studyhub.domain.week.repository.WeekRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +34,11 @@ public class StudyService {
     private final UserRepository userRepository;
     private final StudyAuthorizationService studyAuth;
     private final InviteCodeGenerator inviteCodeGenerator;
+    private final WeeklyBestMemberRepository bestMemberRepository;
+    private final MaterialRepository materialRepository;
+    private final StudyTagRepository studyTagRepository;
+    private final SubmissionRepository submissionRepository;
+    private final WeekRepository weekRepository;
 
     /** 스터디 생성 + 생성자를 MANAGER 로 등록. 둘 중 하나라도 실패하면 둘 다 취소되도록 한 트랜잭션으로 묶는다. */
     @Transactional
@@ -59,6 +69,27 @@ public class StudyService {
         // 변경 감지(dirty checking): 엔티티 값만 바꾸면 트랜잭션이 끝날 때 UPDATE 가 나간다.
         me.getStudy().update(name, request.description());
         return toResponse(me);
+    }
+
+    @Transactional
+    public String reissueInviteCode(Long studyId, Long userId) {
+        Study study = studyAuth.requireManager(studyId, userId).getStudy();
+        String code = newInviteCode();
+        study.replaceInviteCode(code);
+        return code;
+    }
+
+    @Transactional
+    public void delete(Long studyId, Long userId) {
+        Study study = studyAuth.requireManager(studyId, userId).getStudy();
+        // Delete dependent records first so their foreign keys remain valid.
+        bestMemberRepository.deleteAllByStudyId(studyId);
+        submissionRepository.deleteAllByStudyId(studyId);
+        materialRepository.deleteAllByStudyId(studyId);
+        weekRepository.deleteAllByStudyId(studyId);
+        studyTagRepository.deleteAllByStudyId(studyId);
+        studyMemberRepository.deleteAllByStudyId(studyId);
+        studyRepository.delete(study);
     }
 
     private StudyResponse toResponse(StudyMember me) {

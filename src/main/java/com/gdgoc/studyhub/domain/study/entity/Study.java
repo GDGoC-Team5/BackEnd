@@ -41,6 +41,10 @@ public class Study extends BaseTimeEntity {
         return new Study(name, description, inviteCode);
     }
 
+    public void replaceInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+    }
+
     /** null 인 값은 바꾸지 않는다 (PATCH). */
     public void update(String name, String description) {
         if (name != null) {

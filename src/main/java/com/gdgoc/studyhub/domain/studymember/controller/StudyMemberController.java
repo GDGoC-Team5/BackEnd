@@ -3,6 +3,7 @@ package com.gdgoc.studyhub.domain.studymember.controller;
 import com.gdgoc.studyhub.domain.study.dto.StudyResponse;
 import com.gdgoc.studyhub.domain.studymember.dto.StudyJoinRequest;
 import com.gdgoc.studyhub.domain.studymember.dto.StudyMemberResponse;
+import com.gdgoc.studyhub.domain.studymember.dto.StudyMemberRoleRequest;
 import com.gdgoc.studyhub.domain.studymember.service.StudyMemberService;
 import com.gdgoc.studyhub.global.common.ApiResponse;
 import com.gdgoc.studyhub.global.security.CustomUserDetails;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,6 +47,22 @@ public class StudyMemberController {
                                                       @PathVariable Long studyId,
                                                       @PathVariable Long userId) {
         return ApiResponse.ok(studyMemberService.getMember(studyId, userId, principal.getUserId()));
+    }
+
+    @PatchMapping("/{studyId}/members/{userId}/role")
+    public ApiResponse<StudyMemberResponse> changeRole(@AuthenticationPrincipal CustomUserDetails principal,
+                                                       @PathVariable Long studyId,
+                                                       @PathVariable Long userId,
+                                                       @Valid @RequestBody StudyMemberRoleRequest request) {
+        return ApiResponse.ok(studyMemberService.changeRole(studyId, userId, principal.getUserId(), request.role()));
+    }
+
+    @DeleteMapping("/{studyId}/members/{userId}")
+    public ApiResponse<Void> kick(@AuthenticationPrincipal CustomUserDetails principal,
+                                  @PathVariable Long studyId,
+                                  @PathVariable Long userId) {
+        studyMemberService.kick(studyId, userId, principal.getUserId());
+        return ApiResponse.ok();
     }
 
     /** 내 탈퇴 */

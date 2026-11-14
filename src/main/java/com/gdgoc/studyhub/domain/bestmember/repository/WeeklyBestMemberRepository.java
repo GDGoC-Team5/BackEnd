@@ -17,4 +17,7 @@ public interface WeeklyBestMemberRepository extends JpaRepository<WeeklyBestMemb
     @Modifying
     @Query("delete from WeeklyBestMember b where b.week.id = :weekId")
     void deleteAllByWeekId(@Param("weekId") Long weekId);
+    @Modifying
+    @Query("delete from WeeklyBestMember item where item.week.id in (select w.id from Week w where w.study.id = :studyId)")
+    void deleteAllByStudyId(@Param("studyId") Long studyId);
 }

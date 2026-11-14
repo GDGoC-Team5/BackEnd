@@ -12,6 +12,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +51,21 @@ public class StudyController {
                                                @PathVariable Long studyId) {
         return ApiResponse.ok(studyService.getStudy(studyId, principal.getUserId()));
     }
+
+    @PostMapping("/{studyId}/invite-code")
+    public ApiResponse<InviteCodeResponse> reissueInviteCode(@AuthenticationPrincipal CustomUserDetails principal,
+                                                            @PathVariable Long studyId) {
+        return ApiResponse.ok(new InviteCodeResponse(studyService.reissueInviteCode(studyId, principal.getUserId())));
+    }
+
+    @DeleteMapping("/{studyId}")
+    public ApiResponse<Void> delete(@AuthenticationPrincipal CustomUserDetails principal,
+                                    @PathVariable Long studyId) {
+        studyService.delete(studyId, principal.getUserId());
+        return ApiResponse.ok();
+    }
+
+    public record InviteCodeResponse(String inviteCode) {}
 
     /** MANAGER 만 수정 가능 */
     @PatchMapping("/{studyId}")

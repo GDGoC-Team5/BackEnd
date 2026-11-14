@@ -6,6 +6,7 @@ import com.gdgoc.studyhub.domain.study.repository.StudyRepository;
 import com.gdgoc.studyhub.domain.studymember.dto.StudyMemberResponse;
 import com.gdgoc.studyhub.domain.studymember.entity.MemberStatus;
 import com.gdgoc.studyhub.domain.studymember.entity.StudyMember;
+import com.gdgoc.studyhub.domain.studymember.entity.StudyRole;
 import com.gdgoc.studyhub.domain.studymember.exception.StudyMemberErrorCode;
 import com.gdgoc.studyhub.domain.studymember.repository.StudyMemberRepository;
 import com.gdgoc.studyhub.domain.user.repository.UserRepository;
@@ -72,10 +73,34 @@ public class StudyMemberService {
     /** 멤버 상세. 멤버만 볼 수 있고, 조회 대상은 같은 스터디의 ACTIVE 멤버여야 한다. */
     public StudyMemberResponse getMember(Long studyId, Long targetUserId, Long requesterId) {
         studyAuth.requireMember(studyId, requesterId);
-        StudyMember target = studyMemberRepository
-                .findByStudyIdAndUserIdAndStatus(studyId, targetUserId, MemberStatus.ACTIVE)
-                .orElseThrow(() -> new BusinessException(StudyMemberErrorCode.STUDY_MEMBER_NOT_FOUND));
+        return StudyMemberResponse.from(findActiveMember(studyId, targetUserId));
+    }
+
+    @Transactional
+    public StudyMemberResponse changeRole(Long studyId, Long targetUserId, Long actorUserId, StudyRole role) {
+        StudyMember target = requireManageableMember(studyId, targetUserId, actorUserId);
+        target.changeRole(role);
         return StudyMemberResponse.from(target);
+    }
+
+    @Transactional
+    public void kick(Long studyId, Long targetUserId, Long actorUserId) {
+        requireManageableMember(studyId, targetUserId, actorUserId).leave();
+    }
+
+    private StudyMember requireManageableMember(Long studyId, Long targetUserId, Long actorUserId) {
+        // Serialize changes so two managers cannot remove or demote each other concurrently.
+        studyRepository.lockById(studyId);
+        studyAuth.requireManager(studyId, actorUserId);
+        if (actorUserId.equals(targetUserId)) {
+            throw new BusinessException(StudyMemberErrorCode.CANNOT_MANAGE_SELF);
+        }
+        return findActiveMember(studyId, targetUserId);
+    }
+
+    private StudyMember findActiveMember(Long studyId, Long userId) {
+        return studyMemberRepository.findByStudyIdAndUserIdAndStatus(studyId, userId, MemberStatus.ACTIVE)
+                .orElseThrow(() -> new BusinessException(StudyMemberErrorCode.STUDY_MEMBER_NOT_FOUND));
     }
 
     /**
