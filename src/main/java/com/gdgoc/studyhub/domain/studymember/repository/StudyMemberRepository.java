@@ -5,6 +5,7 @@ import com.gdgoc.studyhub.domain.studymember.entity.StudyMember;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -33,4 +34,7 @@ public interface StudyMemberRepository extends JpaRepository<StudyMember, Long> 
             order by m.role asc, m.id asc
             """)
     List<StudyMember> findAllWithUserByStudyId(@Param("studyId") Long studyId, @Param("status") MemberStatus status);
+    @Modifying
+    @Query("delete from StudyMember item where item.study.id = :studyId")
+    void deleteAllByStudyId(@Param("studyId") Long studyId);
 }

@@ -19,6 +19,7 @@ public enum StudyMemberErrorCode implements ErrorCode {
     // 가입 · 탈퇴
     INVALID_INVITE_CODE(HttpStatus.NOT_FOUND, "STUDY_404_INVITE", "유효하지 않은 초대 코드입니다."),
     ALREADY_STUDY_MEMBER(HttpStatus.CONFLICT, "STUDY_409_MEMBER", "이미 가입한 스터디입니다."),
+    CANNOT_MANAGE_SELF(HttpStatus.CONFLICT, "STUDY_409_SELF", "자신의 역할을 변경하거나 자신을 내보낼 수 없습니다."),
     MANAGER_CANNOT_LEAVE(HttpStatus.CONFLICT, "STUDY_409_MANAGER_LEAVE", "스터디 매니저는 탈퇴할 수 없습니다.");
 
     private final HttpStatus status;

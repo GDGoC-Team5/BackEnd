@@ -73,6 +73,10 @@ public class StudyMember extends BaseTimeEntity {
         return role == StudyRole.MANAGER;
     }
 
+    public void changeRole(StudyRole role) {
+        this.role = role;
+    }
+
     public void leave() {
         this.status = MemberStatus.LEFT;
     }
