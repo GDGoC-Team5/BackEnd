@@ -5,6 +5,7 @@ import com.gdgoc.studyhub.global.security.RestAccessDeniedHandler;
 import com.gdgoc.studyhub.global.security.RestAuthenticationEntryPoint;
 import com.gdgoc.studyhub.global.security.RestLogoutSuccessHandler;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -47,11 +48,16 @@ public class SecurityConfig {
             "/v3/api-docs/**"
     };
 
-    private static final List<String> ALLOWED_ORIGINS = List.of(
-            "https://studyhub.com",
-            "https://dev.studyhub.com",
-            "http://localhost:3000"
-    );
+    /**
+     * 브라우저에서 백엔드를 직접 호출해도 되는 프론트 주소 목록.
+     * application.yml 의 cors.allowed-origins (환경변수 CORS_ALLOWED_ORIGINS, 쉼표 구분) 에서 읽는다.
+     * 프론트가 Next 프록시(/api rewrites)를 쓰면 같은 출처라서 실제로는 거의 쓰이지 않는다.
+     */
+    private final List<String> allowedOrigins;
+
+    public SecurityConfig(@Value("${cors.allowed-origins:http://localhost:3000}") List<String> allowedOrigins) {
+        this.allowedOrigins = allowedOrigins.stream().map(String::trim).filter(s -> !s.isEmpty()).toList();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
@@ -116,7 +122,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(ALLOWED_ORIGINS);
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
         config.setAllowCredentials(true);

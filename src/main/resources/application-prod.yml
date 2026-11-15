@@ -1,0 +1,15 @@
+# 운영(서버) 전용 설정. SPRING_PROFILES_ACTIVE=prod 로 실행하면 application.yml 위에 덮어씌워진다.
+
+spring:
+  jpa:
+    hibernate:
+      # 운영 DB 테이블이 엔티티 변경으로 자동 수정되지 않도록 검증만 한다.
+      # 첫 배포(빈 DB)에서는 테이블이 없으므로 JPA_DDL_AUTO=update 로 한 번 실행해 테이블을 만든 뒤 환경변수를 지운다.
+      ddl-auto: ${JPA_DDL_AUTO:validate}
+
+springdoc:
+  # 운영 서버에서는 API 문서(Swagger UI, /v3/api-docs)를 노출하지 않는다.
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
