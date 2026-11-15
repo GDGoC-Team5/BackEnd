@@ -26,6 +26,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final LoginAttemptService loginAttemptService;
 
     @Transactional
     public UserResponse signup(SignupRequest request) {
@@ -50,11 +51,19 @@ public class AuthService {
      * 이메일이 없든 비밀번호가 틀리든 같은 LOGIN_FAILED 로 응답해 가입 여부를 노출하지 않는다.
      */
     public Authentication authenticate(LoginRequest request) {
+        String email = normalizeEmail(request.email());
+        // 잠긴 동안에는 비밀번호를 검사하지 않는다 (맞는 비밀번호여도 429) → 잠긴 사이 대입 시도가 의미 없어진다.
+        if (loginAttemptService.isBlocked(email)) {
+            throw new BusinessException(AuthErrorCode.TOO_MANY_LOGIN_ATTEMPTS);
+        }
         UsernamePasswordAuthenticationToken token = UsernamePasswordAuthenticationToken.unauthenticated(
-                normalizeEmail(request.email()), request.password());
+                email, request.password());
         try {
-            return authenticationManager.authenticate(token);
+            Authentication authentication = authenticationManager.authenticate(token);
+            loginAttemptService.reset(email);
+            return authentication;
         } catch (AuthenticationException e) {
+            loginAttemptService.recordFailure(email);
             throw new BusinessException(AuthErrorCode.LOGIN_FAILED);
         }
     }

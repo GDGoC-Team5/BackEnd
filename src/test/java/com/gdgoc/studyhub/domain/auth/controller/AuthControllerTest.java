@@ -153,6 +153,19 @@ class AuthControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void 로그인을_5번_실패하면_맞는_비밀번호여도_429를_반환한다() throws Exception {
+        // 다른 테스트와 실패 횟수가 섞이지 않도록 이 테스트 전용 이메일을 쓴다 (제한 기록은 서버 메모리에 남음)
+        saveUser("locked@studyhub.com", "password1234");
+        for (int i = 0; i < 5; i++) {
+            login("locked@studyhub.com", "wrong-password").andExpect(status().isUnauthorized());
+        }
+
+        login("locked@studyhub.com", "password1234")
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.error.code").value("AUTH_429"));
+    }
+
     private void saveUser(String email, String password) {
         userRepository.save(User.create(email, passwordEncoder.encode(password), "테스터"));
     }
