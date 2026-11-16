@@ -1,0 +1,68 @@
+# CI: develop / main 으로 가는 PR 과 push 마다 테스트 (H2 메모리 DB 사용, 실제 DB 불필요)
+# CD: main 에 push(= PR 머지) 되면 EC2 에 SSH 접속 → 최신 main 받아서 docker compose 재빌드·재시작
+#
+# 필요한 GitHub Secrets (Settings → Secrets and variables → Actions)
+#   EC2_HOST     : EC2 퍼블릭 IP 또는 도메인
+#   EC2_USER     : SSH 사용자 (Ubuntu AMI 면 ubuntu, Amazon Linux 면 ec2-user)
+#   EC2_SSH_KEY  : .pem 키 파일 내용 전체
+#   EC2_APP_DIR  : EC2 에서 이 레포를 clone 해 둔 경로 (예: /home/ubuntu/BackEnd)
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch: # Actions 탭에서 수동 실행
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test
+        run: |
+          chmod +x gradlew
+          ./gradlew test --no-daemon
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            cd "${{ secrets.EC2_APP_DIR }}"
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+            # .env 는 git 에 없으므로 서버에 있는 그대로 유지된다
+            docker compose up -d --build app
+            docker image prune -f
+            # 앱이 뜨는지 확인 (최대 약 60초 대기)
+            for i in $(seq 1 12); do
+              if [ "$(docker inspect -f '{{.State.Running}}' studyhub-app)" = "true" ] \
+                 && curl -s -o /dev/null http://localhost:8080; then
+                echo "deploy ok"; exit 0
+              fi
+              sleep 5
+            done
+            echo "app did not start"; docker compose logs --tail=100 app; exit 1
