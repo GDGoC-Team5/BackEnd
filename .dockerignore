@@ -1,0 +1,10 @@
+# 빌드 컨텍스트에서 제외 (이미지 크기 감소 + 비밀 값 유출 방지)
+.git
+.gradle
+.idea
+build
+out
+*.iml
+.env
+.env.*
+docker-compose.yml
