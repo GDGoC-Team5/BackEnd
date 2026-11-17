@@ -64,23 +64,24 @@ public class StudyMemberService {
 
     /** 멤버 목록. 멤버만 볼 수 있다. ACTIVE 멤버만, MANAGER 를 먼저 보여준다. */
     public List<StudyMemberResponse> getMembers(Long studyId, Long userId) {
-        studyAuth.requireMember(studyId, userId);
+        boolean manager = studyAuth.requireMember(studyId, userId).isManager();
         return studyMemberRepository.findAllWithUserByStudyId(studyId, MemberStatus.ACTIVE).stream()
-                .map(StudyMemberResponse::from)
+                .map(m -> StudyMemberResponse.of(m, manager || m.getUser().getId().equals(userId)))
                 .toList();
     }
 
     /** 멤버 상세. 멤버만 볼 수 있고, 조회 대상은 같은 스터디의 ACTIVE 멤버여야 한다. */
     public StudyMemberResponse getMember(Long studyId, Long targetUserId, Long requesterId) {
-        studyAuth.requireMember(studyId, requesterId);
-        return StudyMemberResponse.from(findActiveMember(studyId, targetUserId));
+        boolean manager = studyAuth.requireMember(studyId, requesterId).isManager();
+        return StudyMemberResponse.of(findActiveMember(studyId, targetUserId),
+                manager || targetUserId.equals(requesterId));
     }
 
     @Transactional
     public StudyMemberResponse changeRole(Long studyId, Long targetUserId, Long actorUserId, StudyRole role) {
         StudyMember target = requireManageableMember(studyId, targetUserId, actorUserId);
         target.changeRole(role);
-        return StudyMemberResponse.from(target);
+        return StudyMemberResponse.of(target, true); // actor 는 MANAGER
     }
 
     @Transactional
